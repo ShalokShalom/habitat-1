@@ -29,7 +29,7 @@ use std::result;
 use std::thread;
 
 use ansi_term::Colour;
-use hcore::os::process::{HabChild, ExitStatusExt};
+use hcore::os::process::{HabChild, ExitStatusExt, Satan};
 use hcore::util::perm::set_owner;
 use hcore::service::ServiceGroup;
 use serde::{Serialize, Serializer};
@@ -117,10 +117,10 @@ impl Supervisor {
                   &pkg.svc_user,
                   &pkg.svc_group);
         self.enter_state(ProcessState::Start);
-        let mut child = exec::run_cmd(&pkg.svc_run, &pkg)?.spawn()?;
+        let mut child = try!(Satan::spawn(exec::run_cmd(&pkg.svc_run, &pkg)?));
         self.child = Some(HabChild::from(&mut child)?);
-        let c_stdout = child.stdout;
-        let c_stderr = child.stderr;
+        let c_stdout = child.stdout();
+        let c_stderr = child.stderr();
         self.create_pidfile(pkg)?;
         let out_package_name = self.preamble.clone();
         let err_package_name = self.preamble.clone();
